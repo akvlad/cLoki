@@ -12,8 +12,6 @@ APIs are compatible with [Grafana Explore](http://docs.grafana.org/features/expl
 
 :fire: *Beta Stage, Contributions Welcome! :octocat: Do not use this for anything serious.. yet!*
 
-![ezgif com-optimize 15](https://user-images.githubusercontent.com/1423657/50496835-404e6480-0a33-11e9-87a4-aebb71a668a7.gif)
-
 ### Project Background
 
 The *Loki API* and its Grafana native integration are brilliant, simple and appealing - but we just love **Clickhouse**. 
@@ -25,8 +23,6 @@ The *Loki API* and its Grafana native integration are brilliant, simple and appe
 ### :fire: CliQL: Experimental 2.0 Features
 
 cLoki implements custom query functions for clickhouse timeseries extraction, allowing direct access to any table
-
-![ezgif com-gif-maker](https://user-images.githubusercontent.com/1423657/99530591-d0885080-29a1-11eb-87e6-870a046fb4de.gif)
 
 
 #### Timeseries
