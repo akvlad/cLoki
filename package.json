@@ -30,6 +30,9 @@
     "short-hash": "^1.0.0",
     "axios": "^0.21.1"
   },
+  "devDependencies": {
+    "jest": "^27.0.4"
+  },
   "directories": {
     "lib": "lib"
   },
