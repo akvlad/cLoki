@@ -1,53 +1,50 @@
-request ::= <log_stream_selector> | <log_range_aggregation> | <aggregation_operator>
+<SYNTAX> ::= <log_stream_selector> | <log_range_aggregation> | <aggregation_operator>
 
-log_stream_selector ::= "{" <log_stream_selector_rule> <opt_log_stream_selector_rule> "}" <opt_log_pipeline>
+log_stream_selector ::= "{" <OWSP> <log_stream_selector_rule> *(<OWSP> "," <OWSP> <log_stream_selector_rule>) <OWSP> "}"
+     <OWSP> *(<OWSP><log_pipeline>)
 
-log_stream_selector_rule ::= <label> <operator> <quoted_str>
-label ::= /[a-zA-Z0-9_]+(?![a-zA-Z0-9_])/
-operator ::= /(!=|=~|!~|=)/
-quoted_str ::= "\"" <escaped string with correct \\ and \" escaping> "\""
-opt_log_stream_selector_rule ::= "," <log_stream_selector_rule> <opt_log_stream_selector_rule> | ""
+log_stream_selector_rule ::= <label> <OWSP> <operator> <OWSP> <quoted_str>
+label ::= (<ALPHA> | "_") *(<ALPHA> | "_" | <NUMBER>)
+operator ::= <stream_selector_operator_registry>
+quoted_str ::= <QLITERAL>
 
-opt_log_pipeline ::= <log_pipeline> <opt_log_pipeline> | ""
-log_pipeline ::= <line_filter_expression> | <parser_expression> | <label_filter_expression> | <line_format_expression> | <labels_format_expression> | <unwrap_expression>
+log_pipeline ::= <line_filter_expression> | <parser_expression> | <label_filter_expression> | <line_format_expression> | <labels_format_expression>
 
-line_filter_expression ::= <line_filter_operator> <quoted_str>
-line_filter_operator ::= /(\|=|!=|\|~|!~)/
+line_filter_expression ::= <line_filter_operator> <OWSP> <quoted_str>
+line_filter_operator ::= <line_filter_operator_registry>
 
-parser_expression ::= "|" <parser_fn_name> <opt_parameters>
-parser_fn_name ::= "json"|"logfmt"|"regexp"|"unpack"|<optional plugable functions from some fn registry>
-opt_parameters ::=  <parameter> <opt_comma_separated_parameters> | ""
-parameter ::= <label> "=" <quoted_str> | <quoted_str>
-opt_comma_separated_parameters ::= "," <parameter> <opt_comma_separated_parameters> | ""
+parser_expression ::= "|" <OWSP> <parser_fn_name> <OWSP> <opt_parameters>
+parser_fn_name ::= <parser_registry>
+opt_parameters ::=  <parameter> <OWSP> *("," <OWSP> <parameter>) | <BLANK>
+parameter ::= <label> <OWSP> "=" <OWSP> <quoted_str> | <quoted_str>
 
-label_filter_expression ::= "|" <string_label_filter_expression> | "|" <number_label_filter_expression> 
+label_filter_expression ::= "|" <OWSP> <string_label_filter_expression> | "|" <OWSP> <number_label_filter_expression>
 
-string_label_filter_expression ::= <label> <operator> <string_label_filter_expression_right_hand>
+string_label_filter_expression ::= <label> <OWSP> <operator> <OWSP> <string_label_filter_expression_right_hand>
 string_label_filter_expression_right_hand ::= <quoted_str> | <backticked_str>
-backticked_str ::= "`" <escaped string with correct \\ and \` escaping> "`"
+backticked_str ::= <AQLITERAL>
 
-number_label_filter_expression ::= <label> <number_operator> <number_value>
-number_operator ::= /(==|!=|>|>=|<|<=)/
-number_value ::= <duration_value> | <bytes_value> | <floating_point_value>
-duration_value ::= <floating_point_value> /(ns|us|ms|s|m|h)/
-bytes_value ::= <floating_point_value> /(b|kib|kb|mb|mib|gib|gb|lib|tb|pib|pb|eib|eb)/
-floating_point_value ::= /[0-9]+\.?[0-9]+/
+number_label_filter_expression ::= <label> <OWSP> <number_operator> <OWSP> <number_value>
+number_operator ::= <number_operator_registry>
+number_value ::= <duration_value> | <bytes_value> | <NUMBER>
+duration_value ::= <NUMBER> ("ns"|"us"|"ms"|"s"|"m"|"h")
+bytes_value ::= <NUMBER> ("b"|"kib"|"kb"|"mb"|"mib"|"gib"|"gb"|"lib"|"tb"|"pib"|"pb"|"eib"|"eb")
 
-line_format_expression ::= "| line_format" <string_label_filter_expression_right_hand>
+line_format_expression ::= "|" <OWSP> "line_format" <string_label_filter_expression_right_hand>
 
-labels_format_expression ::= "| label_format" <labels_format_expression_param> <opt_labels_format_expression_param>
+labels_format_expression ::= "|" <OWSP> "label_format" <OWSP> <labels_format_expression_param> <OWSP>
+    *("," <OWSP> <labels_format_expression_param>)
 labels_format_expression_param ::= <label_rename_param> | <label_inject_param>
-label_rename_param ::= <label> "=" <label>
-label_inject_param ::= <label> "=" <string_label_filter_expression_right_hand>
-opt_labels_format_expression_param ::= "," <labels_format_expression_param> <opt_labels_format_expression_param> | ""
+label_rename_param ::= <label> <OWSP> "=" <OWSP> <label>
+label_inject_param ::= <label> <OWSP> "=" <OWSP> <string_label_filter_expression_right_hand>
 
-log_range_aggregation ::= <log_range_aggregation_fn> "(" <log_stream_selector> "[" <duration_value> "]" ")"
-log_range_aggregation_fn ::= "rate"|"count_over_time"|"bytes_rate"|"bytes_over_time"|"absent_over_time"|<optional plugable functions from some fn registry>
+log_range_aggregation ::= <log_range_aggregation_fn> <OWSP> "(" <OWSP>
+    <log_stream_selector> <OWSP> "[" <duration_value> "]" <OWSP> ")"
+log_range_aggregation_fn ::= <log_range_aggregation_registry>
 
-aggregation_operator ::= <aggregation_operator_fn> "(" <opt_aggregation_operator_param> <log_range_aggregation> <opt_by_without> ")"
-aggregation_operator_fn ::= "sum"|"min"|"max"|"avg"|"stddev"|"stdvar"|"count"|"bottomk"|"topk"|<optional plugable functions from some fn registry>
-opt_aggregation_operator_param ::= /[0-9]+ *,/ | ""
-opt_by_without ::= <by_without> "(" <label_list> ")" | ""
+aggregation_operator ::= <aggregation_operator_fn> <OWSP> "(" <OWSP>
+    [<NUMBER> <OWSP> "," <OWSP>] <log_range_aggregation> <OWSP> <opt_by_without> <OWSP> ")"
+aggregation_operator_fn ::= <high_level_aggregation_registry>
+opt_by_without ::= <by_without> <OWSP> "(" <OWSP> <label_list> <OWSP> ")" | <BLANK>
 by_without ::= "by" | "without"
-label_list ::= <label> <opt_comma_separated_labels>
-opt_comma_separated_labels ::= "," <label> <opt_comma_separated_labels> | ""
+label_list ::= <label> <OWSP> *("," <OWSP> <label>)
