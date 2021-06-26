@@ -504,3 +504,8 @@ fastify.listen(
 		fastify.log.info(`server listening on ${address}`);
 	}
 );
+
+module.exports.stop = () => {
+    fastify.close();
+    DATABASE.stop();
+}
